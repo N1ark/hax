@@ -516,6 +516,11 @@ struct
           Attrs.associated_expr kind super.attrs
           |> Option.map ~f:(self#entrypoint_expr >> f)
         in
+        let get_fn_of kind f : document option =
+          Attrs.associated_fn kind super.attrs
+          |> Option.map ~f:(fun (g,p,x) -> f
+                               (g, List.hd_exn (List.rev p), self#entrypoint_expr x))
+        in
         let requires =
           get_expr_of Requires (fun x ->
               x ^^ space ^^ string "=" ^^ space ^^ string "true")
@@ -523,6 +528,12 @@ struct
         let ensures =
           get_expr_of Ensures (fun x ->
               x ^^ space ^^ string "=" ^^ space ^^ string "true")
+        in
+        let ensures_fn =
+          get_fn_of Ensures (fun (g,p,x) ->
+              string "let" ^^ space ^^ self#entrypoint_pat p.pat ^^ space ^^ string ":=" ^^ space ^^ string "@" ^^ name#p ^^ space ^^ concat_map_with (fun x -> x) params ^^ (Option.value ~default:empty (Option.map ~f:(fun r -> space ^^ string "H_requires") requires)) ^^ space ^^ string "in" ^^ break 1
+              ^^ x ^^ space ^^ string "=" ^^ space ^^ string "true"
+            )
         in
         let is_lemma = Attrs.lemma super.attrs in
         if is_lemma then
@@ -535,13 +546,29 @@ struct
             (params
             @ Option.value ~default:[]
                 (Option.map ~f:(fun x -> [ string "`" ^^ braces x ]) requires))
-            typ#p body#p (* ^^ TODO: ensures? *)
+            typ#p body#p
+          ^^
+          Option.value ~default:empty (
+            Option.map ~f:(fun ensure ->
+                break 1 ^^
+                CoqNotation.lemma (name#p ^^ string "_" ^^ string "ensures") generics#p params
+                  (Option.value ~default:empty (Option.map ~f:(fun r -> string "forall (H_requires : " ^^ r ^^ string ")," ^^ break 1) requires)
+                   ^^ ensure
+                  )) ensures_fn)
         else
           CoqNotation.definition name#p generics#p
             (params
             @ Option.value ~default:[]
                 (Option.map ~f:(fun x -> [ string "`" ^^ braces x ]) requires))
-            typ#p body#p (* ^^ TODO: ensures? *)
+            typ#p body#p
+          ^^
+          Option.value ~default:empty (
+            Option.map ~f:(fun ensure ->
+                break 1 ^^
+                CoqNotation.lemma (name#p ^^ string "_" ^^ string "ensures") generics#p params
+                  (Option.value ~default:empty (Option.map ~f:(fun r -> string "forall (H_requires : " ^^ r ^^ string ")," ^^ break 1) requires)
+                   ^^ ensure
+                  )) ensures_fn)
 
       method item'_HaxError ~super:_ _x2 = default_document_for "item'_HaxError"
 
