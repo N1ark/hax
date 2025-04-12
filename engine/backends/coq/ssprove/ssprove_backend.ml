@@ -2230,16 +2230,16 @@ let hardcoded_coq_headers =
    Open Scope hacspec_scope.\n\
    Import choice.Choice.Exports.\n\n\
    From RecordUpdate Require Import RecordUpdate.\n\n\
+   Import RecordSetNotations.\n\n
    Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.\n"
 
 let translate m (_bo : BackendOptions.t) ~(bundles : AST.item list list) (items : AST.item list) : Types.file list =
   let analysis_data = StaticAnalysis.analyse items in
   U.group_items_by_namespace items
   |> Map.to_alist
-  |> List.filter_map
-       ~f:
-         (snd >> List.hd
-         >> Option.map ~f:(fun i -> ((RenderId.render i.ident).path, items)))
+  |> List.filter_map ~f:(fun (_, items) ->
+      let* first_item = List.hd items in
+      Some ((RenderId.render first_item.ident).path, items))
   |> List.map ~f:(fun (ns, items) ->
          let mod_name =
            String.concat ~sep:"_"
