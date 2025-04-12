@@ -117,6 +117,7 @@ functor
         | Comment of string
         | Definition of definition_type
         | ProgramDefinition of definition_type
+        | Lemma of string * argument list * term
         | Equations of definition_type
         | EquationsQuestionmark of definition_type
         | Notation of string * term * string option
@@ -132,6 +133,7 @@ functor
         | Module of string * string * argument list * record_field list
         | Parameter of string * ty (* definition_type minus 'term' *)
         | HintUnfold of string * ty option
+
     end
 
     let __TODO_pat__ s = AST.Ident (s ^ " todo(pat)")
@@ -455,6 +457,10 @@ functor
           "Program" ^ " " ^ "Definition" ^ " "
           ^ definition_value_to_string (name, arguments, term, ty)
           ^ fail_next_obligation
+      | AST.Lemma (name, arguments, term) ->
+        "Lemma" ^ " " ^ name ^ " "
+        ^ params_to_string_typed arguments
+        ^ " " ^ ":" ^ " " ^ term_to_string_without_paren term 1 ^ "."
       | AST.Equations (name, arguments, term, ty) ->
           "Equations" ^ " "
           ^ definition_value_to_equation_definition (name, arguments, term, ty)
