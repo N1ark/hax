@@ -244,16 +244,16 @@ end) : EXPR = struct
       (typ : ty) =
     let overloaded_names_of_binop : Thir.bin_op -> Concrete_ident.name =
       function
-      | Add -> Core__ops__arith__Add__add
-      | Sub -> Core__ops__arith__Sub__sub
-      | Mul -> Core__ops__arith__Mul__mul
+      | Add | AddUnchecked -> Core__ops__arith__Add__add
+      | Sub | SubUnchecked -> Core__ops__arith__Sub__sub
+      | Mul | MulUnchecked -> Core__ops__arith__Mul__mul
       | Div -> Core__ops__arith__Div__div
       | Rem -> Core__ops__arith__Rem__rem
       | BitXor -> Core__ops__bit__BitXor__bitxor
       | BitAnd -> Core__ops__bit__BitAnd__bitand
       | BitOr -> Core__ops__bit__BitOr__bitor
-      | Shl -> Core__ops__bit__Shl__shl
-      | Shr -> Core__ops__bit__Shr__shr
+      | Shl | ShlUnchecked -> Core__ops__bit__Shl__shl
+      | Shr | ShrUnchecked -> Core__ops__bit__Shr__shr
       | Lt -> Core__cmp__PartialOrd__lt
       | Le -> Core__cmp__PartialOrd__le
       | Ne -> Core__cmp__PartialEq__ne
@@ -269,16 +269,16 @@ end) : EXPR = struct
       | Offset -> Core__ptr__const_ptr__Impl__offset
     in
     let primitive_names_of_binop : Thir.bin_op -> Concrete_ident.name = function
-      | Add -> Rust_primitives__u128__add
-      | Sub -> Rust_primitives__u128__sub
-      | Mul -> Rust_primitives__u128__mul
+      | Add | AddUnchecked -> Rust_primitives__u128__add
+      | Sub | SubUnchecked -> Rust_primitives__u128__sub
+      | Mul | MulUnchecked -> Rust_primitives__u128__mul
       | Div -> Rust_primitives__u128__div
       | Rem -> Rust_primitives__u128__rem
       | BitXor -> Rust_primitives__u128__bit_xor
       | BitAnd -> Rust_primitives__u128__bit_and
       | BitOr -> Rust_primitives__u128__bit_or
-      | Shl -> Rust_primitives__u128__shl
-      | Shr -> Rust_primitives__u128__shr
+      | Shl | ShlUnchecked -> Rust_primitives__u128__shl
+      | Shr | ShrUnchecked -> Rust_primitives__u128__shr
       | Lt -> Rust_primitives__u128__lt
       | Le -> Rust_primitives__u128__le
       | Ne -> Rust_primitives__u128__ne
@@ -330,11 +330,12 @@ end) : EXPR = struct
         let expected, f =
           match op with
           | Add | Sub | Mul | AddWithOverflow | SubWithOverflow
-          | MulWithOverflow | Div ->
+          | MulWithOverflow | AddUnchecked | SubUnchecked | MulUnchecked | Div
+            ->
               both int <|> both float
           | Rem | Cmp -> both int
           | BitXor | BitAnd | BitOr -> both int <|> both bool
-          | Shl | Shr -> int <*> int
+          | Shl | Shr | ShlUnchecked | ShrUnchecked -> int <*> int
           | Lt | Le | Ne | Ge | Gt -> both int <|> both float
           | Eq -> both int <|> both float <|> both bool
           | Offset -> ("", fun _ -> Some "")
