@@ -42,6 +42,9 @@ pub enum ConstantExprKind {
     Array {
         fields: Vec<ConstantExpr>,
     },
+    Slice {
+        fields: Vec<ConstantExpr>,
+    },
     Tuple {
         fields: Vec<ConstantExpr>,
     },
@@ -178,7 +181,7 @@ impl From<ConstantExpr> for Expr {
             Cast { source } => ExprKind::Cast {
                 source: source.into(),
             },
-            kind @ (FnDef { .. } | FnPtr(..) | Memory { .. }) => {
+            kind @ (FnDef { .. } | FnPtr(..) | Slice { .. } | Memory { .. }) => {
                 ExprKind::Todo(format!("Unsupported constant kind. kind={:#?}", kind))
             }
             Todo(msg) => ExprKind::Todo(msg),
