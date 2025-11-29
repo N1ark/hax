@@ -349,7 +349,11 @@ fn op_to_const<'tcx, S: UnderOwnerState<'tcx>>(
                     op_to_const(s, span, ecx, op)
                 })
                 .collect::<InterpResult<Vec<_>>>()?;
-            ConstantExprKind::Array { fields }
+            if matches!(ty.kind(), ty::Array(..)) {
+                ConstantExprKind::Array { fields }
+            } else {
+                ConstantExprKind::Slice { fields }
+            }
         }
         ty::Str => {
             let str = ecx.read_str(&op.assert_mem_place())?;
